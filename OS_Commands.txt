@@ -1,0 +1,81 @@
+_______________________________________________________________________________________
+
+Before Collect you want to determine NIC Capability
+iwlist wlan0 freq (or channel) iwlist by itself will return your options
+
+_______________________________________________________________________________________
+macchanger commands
+
+macchanger -s (interface)
+macchanger -r (interface)
+macchanger -p (interface)
+macchanger -m MAC Address You're changing to (interface)
+macchanger -l (list of legit companies recognized by macchanger)
+_______________________________________________________________________________________
+
+Renaming your NIC
+nano /etc/udev/rules.d/70-persistent-cd.rules 
+
+SUBSYSTEM=="net", ACTION=="add", DRIVERS=="?*", ATTR{address}==“MACADDR", ATTR{type}=="1", NAME=“desired name"
+_______________________________________________________________________________________
+
+Checking puck info + adding required verbiage for puck to be read
+
+nano /etc/udev/rules.d/99-usb-serial.rules
+
+SUBSYSTEM=="tty", ATTRS{idVendor}=="067b", ATTRS{idProduct}=="2303", SYMLINK+=“GPS”
+
+nano /etc/default/gpsd (this is for the daemon of the GPS and needs the verbiage below)
+
+START_DAEMON="true"USBAUTO="true"DEVICES="/dev/ttyUSB0"GPSD_OPTIONS="-b -n"
+
+gpsd /dev/GPS (starts the GPS daemon)
+gpsmon /dev/GPS (checking that you have satellite connectivity)
+
+________________________________________________________________________________________
+
+Airodump-ng 
+airodump-ng --help (to figure out additional information)
+
+Writes capture to file - -w or --write <output>
+Specify the output type - --output-format [pcap, csv, logcsv]
+Enable GPS - -g or --gpsd 
+Specify which band to monitor - -b or --band [a, b, g]
+Time (msec) between hoping channels - -f
+Fade out time (seconds) - --berlin
+Identifier for network of interest - -d or --bssid<input>
+Specifies the channel to camp on - -c or --channel [1, 6, 11]
+Read a pcap - -r <input> -w or --write <output>
+Specify which portions of the MAC to match - -m or --netmask FF:FF:FF:00:00:00
+
+________________________________________________________________________________________
+
+Kismet 
+
+Configure channel hop speed and GPS
+
+nano /etc/kismet/kismet.conf
+
+Adjust hop speed - channel_hop_speed=4/sec
+Uncomment gps=type:gpsd
+Add gps=gpsd:host=localhost,port=2947,reconnect=true
+Add gps=gpsd:device=/dev/GPS,reconnect=true,name=laptop
+Configure output 
+
+nano /etc/kismet/kismet_logging.conf
+
+Modify log for data management – log_title=<your_management_name_here!>
+Specify output location - log_prefix=./<desired location> 
+Add pcapng to output - log_types=pcapppi,pcapng
+
+Configure device drop time
+
+nano /etc/kismet/kismet_memory.conf
+
+Adjust timeout (in seconds) - tracker_device_timeout=5
+
+Remote Collect 
+
+Remote Capture: kismet -c wlan0:channels=\"1,6,11\"
+
+
